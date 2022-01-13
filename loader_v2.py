@@ -12,8 +12,8 @@ from torch.utils.data import DataLoader
 root='/home/share/dataset/semanticKITTI'
 pc_root='E:/Datasets/SemanticKitti/dataset/Kitti'
 # laptop_root ='/media/furqan/Terabyte/Lab/datasets/semanticKitti'
-DATA = yaml.safe_load(open('dataloader-master/params/semantic-kitti.yaml', 'r'))
-ARCH = yaml.safe_load(open('dataloader-master/params/arch-params.yaml', 'r'))
+DATA = yaml.safe_load(open('params/semantic-kitti.yaml', 'r'))
+ARCH = yaml.safe_load(open('params/arch-params.yaml', 'r'))
 
 
 train = 'train'
