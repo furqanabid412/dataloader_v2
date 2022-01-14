@@ -38,4 +38,8 @@ multi:
     - 8
     - 16
     - 32
+single:
+  timeframes: 1
+  calibrate: True
+  intervals:
 
