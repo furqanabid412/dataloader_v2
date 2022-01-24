@@ -152,7 +152,10 @@ class LaserScan():
 
         if self.multi_proj :
             # So the total range of depths will be "0" to "max"
-            self.intervals_updated = [0] + self.intervals + [max(self.depth)]
+            if self.intervals !=None :
+                self.intervals_updated = [0] + self.intervals + [max(self.depth)]
+            else :
+                self.intervals_updated = [min(self.depth)]+[max(self.depth)]
 
             for index in range(len(self.intervals_updated)-1):
                 lower,upper=self.intervals_updated[index],self.intervals_updated[index+1]

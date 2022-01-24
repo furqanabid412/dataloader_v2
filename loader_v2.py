@@ -18,19 +18,19 @@ ARCH = yaml.safe_load(open('params/arch-params.yaml', 'r'))
 
 
 train = 'train'
-multi_dataset=SemanticKitti(root=laptop_root,sequences=['3'],labels=DATA["labels"],
+multi_dataset=SemanticKitti(root=pc_root,sequences=['3'],labels=DATA["labels"],
                             color_map=DATA["color_map"],learning_map=DATA["learning_map"],learning_map_inv=DATA["learning_map_inv"],
                             sensor=ARCH["dataset"]["sensor"],multi_proj=ARCH["multi"],max_points=ARCH["dataset"]["max_points"],train=train)
 
-multi_dataloader = DataLoader(multi_dataset, batch_size=2, shuffle=False, num_workers=12,
+multi_dataloader = DataLoader(multi_dataset, batch_size=2, shuffle=False, num_workers=2,
                         pin_memory=True, drop_last=True)
 
 
-original_dataset=SemanticKitti(root=laptop_root,sequences=['3'],labels=DATA["labels"],
+original_dataset=SemanticKitti(root=pc_root,sequences=['3'],labels=DATA["labels"],
                             color_map=DATA["color_map"],learning_map=DATA["learning_map"],learning_map_inv=DATA["learning_map_inv"],
                             sensor=ARCH["dataset"]["sensor"],multi_proj=ARCH["single"],max_points=ARCH["dataset"]["max_points"],train=train)
 
-original_dataloader = DataLoader(original_dataset, batch_size=2, shuffle=False, num_workers=12,
+original_dataloader = DataLoader(original_dataset, batch_size=2, shuffle=False, num_workers=2,
                         pin_memory=True, drop_last=True)
 
 

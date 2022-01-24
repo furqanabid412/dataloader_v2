@@ -42,8 +42,8 @@ class SemanticKitti(Dataset):
     self.sensor_img_H = sensor["img_prop"]["height"]
     self.sensor_img_W = sensor["img_prop"]["width"]
 
-    # self.intervals = multi_proj["intervals"]
-    self.intervals = []
+    self.intervals = multi_proj["intervals"]
+    # self.intervals = []
     self.timeframe = multi_proj["timeframes"]
     self.do_calib =multi_proj["calibrate"]
     self.sensor_fov_up = sensor["fov_up"]
