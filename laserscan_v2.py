@@ -74,6 +74,7 @@ class LaserScan():
 
         if ego_motion:
             hpoints = np.hstack((points, np.ones_like(points[:, :1])))
+            old_points= points
             new_points = np.sum(np.expand_dims(hpoints, 2) * curr_pose.T, axis=1)
             new_points = new_points[:, :3]
             new_coords = new_points - pose0[:3, 3]

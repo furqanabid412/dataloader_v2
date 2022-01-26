@@ -60,7 +60,7 @@ Relu
 class Deconv(nn.Module):
     def __init__(self,in_channels,out_channels):
         super().__init__()
-        self.deconv = nn.ConvTranspose2d(in_channels,out_channels,kernel_size=2,stride=2,padding=0)
+        self.deconv = nn.ConvTranspose2d(in_channels,out_channels,kernel_size=(1,2),stride=(1,2),padding=0)
         self.bn = BatchNorm(out_channels)
         self.relu = nn.ReLU(inplace=True)
 
@@ -100,22 +100,19 @@ Relu
 class DownSample(nn.Module):
     def __init__(self,in_channels,out_channels,stride=2, dilation=1):
         super().__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3,
-                                   stride=2, padding=dilation,
-                                   bias=False, dilation=dilation)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3,stride=(1,2), padding=dilation, bias=False, dilation=dilation)
         self.bn1 = BatchNorm(out_channels)
         self.relu = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3,
-                                stride=1, padding=dilation,
-                                bias=False, dilation=dilation)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3,stride=1, padding=dilation,bias=False, dilation=dilation)
         self.bn2 = BatchNorm(out_channels)
-        self.project = nn.Conv2d(in_channels,out_channels,kernel_size=3,stride=2,padding=1)
+        self.project = nn.Conv2d(in_channels,out_channels,kernel_size=3,stride=(1,2),padding=1)
 
     def forward(self, x, residual=None):
         if residual is None:
             residual = x
 
-        out = self.conv1(x)
+        # x : B,C,H,W
+        out = self.conv1(x) # outputs : B,C,H/2,W/2
         out = self.bn1(out)
         out = self.relu(out)
 

@@ -15,20 +15,23 @@ class visualizer():
         self.image_colormap = image_colormap
         self.learning_map_inv = learning_map_inv
 
-    def label_image_2D(self, input, title, scale, show_plot=True, save_image=False, path=''):
-        H,W=np.shape(input)
-        plt.figure(figsize=(int(W / scale) - 4, int(H / scale) + 2))
-        plt.title(title,fontsize=scale*5)
+    def label_image_2D(self, input, title, scale, show_plot=True, save_image=False, path='test.jpg'):
+        # H,W=np.shape(input)
+        plt.figure(figsize=[80,7])
+        plt.title(title,fontsize=70)
         image = np.array([[self.label_colormap[val] for val in row] for row in input], dtype='B')
         plt.imshow(image)
-        plt.show()
+        if show_plot:
+            plt.show()
+        if save_image:
+            plt.savefig(path)
 
     # 2D visualization any image
 
     def range_image_2D(self, input, title, scale, colormap="magma"):
         cmap = plt.cm.get_cmap(colormap, 10)
-        W, H = input.shape()
-        plt.figure(figsize=(int(W / scale) - 2, int(H / scale) + 0.5))
+        H, W = np.shape(input)
+        plt.figure(figsize=(int(W / scale) - 4, int(H / scale) + 2))
         plt.title(title)
         plt.imshow(input, cmap=cmap)
         plt.colorbar()
@@ -76,7 +79,7 @@ class visualizer():
         # do the mapping
         return lut[label]
 
-
+'''
 root='/home/share/dataset/semanticKITTI'
 pc_root='E:/Datasets/SemanticKitti/dataset/Kitti'
 laptop_root ='/media/furqan/Terabyte/Lab/datasets/semanticKitti'
@@ -149,8 +152,6 @@ plt.show()
 plt.imshow(m7)
 plt.show()
 
-
-
-
 print("just testing")
 
+'''

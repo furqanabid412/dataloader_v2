@@ -3,6 +3,8 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 from laserscan_v2 import *
+from visualizer_v2 import visualizer
+# import cv2
 
 
 EXTENSIONS_SCAN = ['.bin']
@@ -127,8 +129,6 @@ class SemanticKitti(Dataset):
 
       frames_in_a_seq.append(len(scan_files))
 
-
-
     self.frames_in_a_seq = np.array(frames_in_a_seq).cumsum()
 
     self.scan = LaserScan(interv=self.intervals, ch=5, H=self.sensor_img_H, W=self.sensor_img_W,
@@ -220,6 +220,55 @@ class SemanticKitti(Dataset):
     return self.frames_in_a_seq[-1]
 
 
+
+  def check_ego_motion(self,index,frame_before):
+
+    seq, frame = self.get_seq_and_frame(index)
+    temp_scan_path = self.scan_files[seq][frame]
+    temp_label_path = self.label_files[seq][frame]
+
+
+    # frame at time "t"
+    pose0 = self.poses[seq][frame]
+    self.scan.open_scan(temp_scan_path, temp_label_path, pose0, pose0, ego_motion=False)
+    label_at_t = self.map(np.copy(self.scan.proj_sem_label), self.learning_map)
+    # gray_label_at_t = (label_at_t/19)*255
+
+
+    # label_at_t= cv2.dilate(gray_label_at_t, (5,5), iterations=1)
+
+    # visualize = visualizer(self.color_map, "magma", self.learning_map_inv)
+    # labels =(label_at_t/255)*19
+    # visualize.label_colormap(label_at_t,"at time t", 10, show_plot=True, save_image=False, path='')
+
+    temp_scan_path = self.scan_files[seq][frame-frame_before]
+    temp_label_path = self.label_files[seq][frame-frame_before]
+
+    # frame at time "t-1" without ego motion
+    curr_pose = self.poses[seq][frame-frame_before]
+    self.scan.open_scan(temp_scan_path, temp_label_path, pose0, curr_pose, ego_motion=False)
+    label_at_t1_wo = self.map(np.copy(self.scan.proj_sem_label), self.learning_map)
+
+    # frame at time "t-1" with ego motion
+    self.scan.open_scan(temp_scan_path, temp_label_path, pose0, curr_pose, ego_motion=True)
+    label_at_t1_w = self.map(np.copy(self.scan.proj_sem_label), self.learning_map)
+
+    #visualize labels
+
+    # at time t
+    visualize = visualizer(self.color_map, "magma", self.learning_map_inv)
+    label_at_t = visualize.map(label_at_t,self.learning_map_inv)
+    visualize.label_image_2D(label_at_t,"Frame 't'", 10, show_plot=False, save_image=True, path='t.jpg')
+
+    label_at_t1_wo = visualize.map(label_at_t1_wo, self.learning_map_inv)
+    visualize.label_image_2D(label_at_t1_wo, "Frame 't-2' without ego-motion compensation", 10, show_plot=False, save_image=True, path='t_2wo.jpg')
+
+    label_at_t1_w = visualize.map(label_at_t1_w, self.learning_map_inv)
+    visualize.label_image_2D(label_at_t1_w, "Frame 't-2' with ego-motion compensation", 10, show_plot=False, save_image=True, path='t_2w.jpg')
+
+    print("testdone")
+
+
   def __getitem__(self, index):
 
     seq,frame = self.get_seq_and_frame(index)
@@ -281,6 +330,14 @@ class SemanticKitti(Dataset):
         scan_remission = torch.full([self.max_points], -1.0, dtype=torch.float)
         scan_remission[:total_points] = torch.from_numpy(np.copy(self.scan.remission))
 
+
+        # getting single projected scan
+        single_proj_range = np.copy(self.scan.proj_range)
+        single_proj_rem = np.copy(self.scan.proj_remission)
+        single_proj_xyz = np.copy(self.scan.proj_xyz)
+        proj_single_scan = np.concatenate((np.expand_dims(single_proj_rem, axis=0), np.expand_dims(single_proj_range, axis=0), np.rollaxis(single_proj_xyz, 2)), axis=0)
+        proj_single_scan = torch.tensor(proj_single_scan)
+
         if self.train == 'train':
           # mapping classes and saving as a tensor
           original_labels = self.map(np.copy(self.scan.label),self.learning_map)
@@ -311,9 +368,9 @@ class SemanticKitti(Dataset):
     else:
       proj_multi_temporal_label = torch.tensor([])
 
+    return proj_single_scan, proj_single_label
 
-
-    return proj_multi_temporal_scan,proj_multi_temporal_label,scan_points,scan_range,scan_remission,\
-           scan_labels,proj_single_label,pixel_u,pixel_v
+    # return proj_multi_temporal_scan,proj_multi_temporal_label,scan_points,scan_range,scan_remission,\
+    #        scan_labels,proj_single_label,pixel_u,pixel_v
 
 
