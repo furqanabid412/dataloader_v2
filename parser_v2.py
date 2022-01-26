@@ -127,8 +127,6 @@ class SemanticKitti(Dataset):
 
       frames_in_a_seq.append(len(scan_files))
 
-
-
     self.frames_in_a_seq = np.array(frames_in_a_seq).cumsum()
 
     self.scan = LaserScan(interv=self.intervals, ch=5, H=self.sensor_img_H, W=self.sensor_img_W,
@@ -281,6 +279,14 @@ class SemanticKitti(Dataset):
         scan_remission = torch.full([self.max_points], -1.0, dtype=torch.float)
         scan_remission[:total_points] = torch.from_numpy(np.copy(self.scan.remission))
 
+
+        # getting single projected scan
+        single_proj_range = np.copy(self.scan.proj_range)
+        single_proj_rem = np.copy(self.scan.proj_remission)
+        single_proj_xyz = np.copy(self.scan.proj_xyz)
+        proj_single_scan = np.concatenate((np.expand_dims(single_proj_rem, axis=0), np.expand_dims(single_proj_range, axis=0), np.rollaxis(single_proj_xyz, 2)), axis=0)
+        proj_single_scan = torch.tensor(proj_single_scan)
+
         if self.train == 'train':
           # mapping classes and saving as a tensor
           original_labels = self.map(np.copy(self.scan.label),self.learning_map)
@@ -311,9 +317,9 @@ class SemanticKitti(Dataset):
     else:
       proj_multi_temporal_label = torch.tensor([])
 
+    return proj_single_scan, proj_single_label
 
-
-    return proj_multi_temporal_scan,proj_multi_temporal_label,scan_points,scan_range,scan_remission,\
-           scan_labels,proj_single_label,pixel_u,pixel_v
+    # return proj_multi_temporal_scan,proj_multi_temporal_label,scan_points,scan_range,scan_remission,\
+    #        scan_labels,proj_single_label,pixel_u,pixel_v
 
 
