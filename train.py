@@ -1,7 +1,5 @@
-import os
-# os.environ["CUDA_VISIBLE_DEVICES"] = 0,1
-
 from parser_v2 import *
+
 import yaml
 import torch
 from torch import nn
@@ -12,13 +10,11 @@ import timeit
 import tqdm
 from torch.utils.data import DataLoader
 from modified_laser_net import Deep_Aggregation
-# from pytorch_model_summary import summary
+from pytorch_model_summary import summary
 from visualizer_v2 import visualizer
 from iou import iouEval
 import wandb
 from loss_w import weighted_loss
-from DiceLoss import DiceLoss
-
 # torch.cuda.empty_cache()
 
 
@@ -28,8 +24,6 @@ from DiceLoss import DiceLoss
 root='/home/share/dataset/semanticKITTI'
 pc_root='E:/Datasets/SemanticKitti/dataset/Kitti'
 laptop_root ='/media/furqan/Terabyte/Lab/datasets/semanticKitti'
-server_root = '/root/dataset/semantic_kitti/'
-
 DATA = yaml.safe_load(open('params/semantic-kitti.yaml', 'r'))
 ARCH = yaml.safe_load(open('params/arch-params.yaml', 'r'))
 
@@ -47,10 +41,9 @@ loss_weights=wl.get_weights(0.01)
 # proj_multi_temporal_scan,proj_multi_temporal_label,scan_points,scan_range,scan_remission,scan_labels,proj_single_label,pixel_u,pixel_v = dataset[5]
 
 
-lr = 0.0005
+lr = 0.002
 model = Deep_Aggregation(5,[64,64,128],num_classes).cuda()
-model= nn.DataParallel(model)
-criterion = nn.NLLLoss()
+criterion = nn.NLLLoss(ignore_index=0)
 optimizer = torch.optim.Adam(model.parameters(),lr=lr)
 
 dataloader=DataLoader(dataset, batch_size=2, shuffle=False, num_workers=4,pin_memory=True, drop_last=True)
@@ -70,8 +63,6 @@ evaluator = iouEval(num_classes,"cuda",[])
 # visualize.range_image_2D(input_tensor.numpy(),"range projection",10,"magma")
 # visualize.label_image_2D(label,"Label",10)
 
-dice_loss = DiceLoss()
-
 step_losses = []
 epoch_losses = []
 
@@ -85,9 +76,7 @@ for epoch in range(epochs):
 
         class_probs = model.forward(proj_single_scan)
         optimizer.zero_grad()
-        # previous loss
-        loss = dice_loss(proj_single_label,class_probs)
-        # loss = criterion(F.log_softmax(class_probs, dim=1), proj_single_label)
+        loss = criterion(F.log_softmax(class_probs, dim=1), proj_single_label)
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
